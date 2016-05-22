@@ -369,27 +369,28 @@ class Dog: Animal {
 
 ### プロパティ(Properties)
 
-There is no difference between an ivar and property.
+Swiftでは、クラス、構造体、列挙型にプロパティを持たせることができます。プロパティとはこれらの型に関連づけられた属性のことです。
+
+
 
 ```swift
-class Dog: Animal {
-    var cute = false
-    func bark() -> String {
-        if cute {
-            return "Woof"
-        } else {
-            return "Growl"
-        }
+class Person {
+    let name: String    // 名前
+    var age: Int        // 年齢
+
+    init(name: String, age: Int) {
+        self.name = name
+        self.age = age
     }
 }
 
-var myDog = Dog()
-myDog.bark()       // "Growl"
-myDog.cute = true
-myDog.bark()       // "Woof"
+var p = Person(name: "山田太郎", age: 25)
+p.age = 30
+p.name = "鈴木花子" // エラー
 ```
 
-To add behavior normally contained in a getter or setter, use property observers:
+保持型プロパティの宣言の前にlazyというキーワードをつけると、遅延評価させることができます。
+例えば、lazy var hoge: Hoge と宣言すると、hogeというプロパティに実際にアクセスがあるまで、hogeは生成されません。これは、生成にコストがかかるようなインスタンスで、実際にそれが使用されるとは限らないような場合に指定すると、パフォーマンスの向上が期待できます。
 
 ```swift
 class Dog: Animal {
@@ -413,89 +414,61 @@ myDog.grownUp = true
 myDog.cute            // False
 ```
 
-`newValue` and `oldValue` are variables available within property observers.
 
-For properties without ivars, use computed getters and setters.
+###プロトコル(Protocols)
+Javaでいうインターフェースみたいなものです。クラスの挙動を決めた設計図みたいなものです。
 
 ```swift
-class Dog: Animal {
-  var cute = false
-  var adorable: Bool {
-    get {
-        return cute
-    }
-    set(newAdorable) {
-        cute = newAdorable
-    }
-  } 
+protocol SomeProtocol {
+    // インターフェースの定義
+    func someMethod()
+    :
 }
 
-var myDog = Dog()
-myDog.cute = true
-myDog.adorable    // true
-```
 
-If the instance is declared with `let`, the object's properties are still mutable. The constant just can't point to another object.
-
-```swift
-let myDog = Dog()
-myDog.cute = true // Valid
-myDog = Dog()     // Invalid
-```
-
-### Protocols
-
-```swift
-protocol Domesticated {
-    var name: String? { get set }
-    func respondToName() -> ()
+struct SomeStructure: SomeProtocol {
+    func someMethod()
+    :
 }
+```
 
-class Dog: Animal, Domesticated {
-    var name: String?
-    func respondToName() {
-        println("Wag tail")
+### イニシャライザとデイニシャライザ(Initializers and Deinitializers)
+
+イニシャライザはinitという名の特別なメソッドで、構造体とクラスで初期化のために使用します。
+
+```swift
+/* パーソン */
+struct Person {
+    var name: String    // 名前
+    var age: Int        // 年齢
+    // イニシャライザ
+    init(name: String, age: Int) {
+        self.name = name
+        self.age = age
     }
 }
+let person = Person(name:"タロウ", age: 18)
 ```
 
-### Initializers and Deinitializers
 
-The initializer must make sure every stored property has a value before any methods are called, including `super.init()`
+
+デイニシャライザはクラスのインスタンスが破棄される時に自動的に呼ばれる特殊なメソッドです。構造体にデイニシャライザはありません。
+メモリに確保されたインスタンスやプロパティはARC（Automatic reference counting）によって自動的に破棄されるので通常はデイニシャライザを記述する必要はありませんが、例えばファイルを扱うクラスで、開いたファイルをインスタンスの破棄時に確実に閉じるためにデイニシャライザを利用することができます。
+デイニシャライザは次のように、deinitという名のメソッドです。deinitの後の()（かっこ）は不要です。
 
 ```swift
-class Dog: Animal {
-  var cute: Bool
-  override init() {
-    cute = true
-    super.init()
-  }
+deinit {
+    // 後始末
 }
 ```
 
-This is equivalent to the default initializer for:
+## 構造体(Structs)
 
-```swift
-class Dog: Animal {
-  var cute = true
-}
-```
+カプセル化を実現する方法としてSwiftには、クラスの他に構造体（struct）が用意されています。
 
-By overriding `init()`, you lose the default assignment behavior for all properties.
-
-To perform cleanup code before an object is destroyed:
-
-```swift
-class Dog: Animal {
-    deinit {
-       println("Cleaned up")
-    }
-}
-```
-
-## Structs
-
-Swift structs are like C structs, but much more powerful, resembling classes. These advanced features are covered in [[Intermediate Swift|Swift Intermediate]].
+ - 構造体では継承は利用できません。
+ - 構造体にデイニシャライザは定義できません。
+ - クラスのインスタンスを別の変数に代入すると参照が渡されます。インスタンスの参照数は参照カウントで管理されます。対して構造体を別の変数に代入すると新たなコピーが生成されます。構造体の参照先は常に１つなので参照カウントは使用されません。
 
 ```swift
 struct User {
@@ -510,13 +483,9 @@ By default, structs come with a member initializer.
 let ben = User(name: "Ben Sandofsky", occupation:"Engineer")
 ```
 
-As with Objective-C, structs are passed by value, classes are passed by reference.
-
-Unlike a class, when a struct is declared with `let`, all of its properties are immutable.
-
 ## Enum
 
-Like structs, Swift enums are more powerful than their C equivalents. See [[Intermediate Swift|Swift Intermediate]].
+列挙型は、関連する値を型としてまとめたものです
 
 ```swift
 enum Color: Int {
@@ -525,40 +494,10 @@ enum Color: Int {
 let orangeValue = Color.Orange
 ```
 
-To access the underlying value, use `toRaw()`:
 
-```swift
-println("Orange raw value: \(orangeValue.toRaw()).")
-```
+## エクステンション(Extensions)
+直接ソースコードをいじることなくクラス、構造体、列挙型を拡張することができます。
 
-Enums may use other underlying values:
-
-```swift
-enum ControlCharacters: Character {
-  case Tab = "\t"
-  case Linefeed = "\n"
-  case CarriageReturn = "\r"
-}
-```
-
-They can have no raw value:
-
-```swift
-enum Season {
-  case Spring, Summer, Fall, Winter
-}
-```
-
-If the enum type can be inferred, you can omit it.
-
-```swift
-let label = UILabel
-label.textAlignment = .Right
-```
-
-## Extensions
-
-You may extend classes, structs, and enums, without touching the original source code. It is similar to a category in Objective-C, or monkey patching in Ruby.
 
 ```swift
 extension String {
