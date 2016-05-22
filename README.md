@@ -101,16 +101,18 @@ characterDictionary["Simba"] = "Matthew Broderick"
 
 ###タプル(Tuples)
 タプルは、複数の値を一組にしたものです。配列と似ていますが、配列と違って異なる型の値をまとめることができます。但し、後から要素を追加したり削除することはできません。
+swift2.0以降では`println`は廃止されてしまい、`print`を使うようになりました。そのまま`print`を使用すると\nが行末に表示されてしまいますが、`改行なしの場合は、terminatorとして空文字（””）を渡します。`以後`print`をこのノートで扱う際は\nがprintされるのは気にせず書きます。
 
 ```swift
 let myColors = ("Green", "Blue", "Indigo", "Violet")
-println(myColors.2) // "Indigo"
+print(myColors.2) // "Indigo"
+print(myColors.2, terminator:"")
 ```
 以下のような使い方をすると便利ですね。
 
 ```swift
 let myResponse: (code: Int, message: String) = (200, "OK")
-println(myResponse.message)
+print(myResponse.message)
 ```
 
 ## 制御文(Control Flow)
@@ -133,7 +135,7 @@ if 条件1 {
 
 ```swift
 if numberValue == 1 {
-  println("The value was 1.")
+  print("The value was 1.")
 }
 ```
 
@@ -143,11 +145,11 @@ switch文を使うと、値に応じた処理内容を記述することがで�
 ```swift
 switch someValue {
    case 1:
-     println("Hit single value.")
+     print("Hit single value.")
    case 2...10:
-     println("Large value.")
+     print("Large value.")
    default:
-     println("Some other value.")
+     print("Some other value.")
 }
 ```
 
@@ -158,7 +160,7 @@ arrayに対してfor/inを使用する:
 
 ```swift
 for user in arrayOfUsers {
-  println(user)
+  print(user)
 }
 ```
 
@@ -166,15 +168,15 @@ for user in arrayOfUsers {
 
 ```swift
 for (key, value) in dictionary {
-  println("\(key): \(value)")
+  print("\(key): \(value)")
 }
 ```
 
-1~10の数字をひとつずつindexに格納してprintlnで出力する:
+1~10の数字をひとつずつindexに格納してprintで出力する:
 
 ```swift
 for index in 1...10 {
-  println("Index: \(index)")
+  print("Index: \(index)")
 }
 ```
 
@@ -215,45 +217,48 @@ if optionalValue != nil {
 ```
 
 `nil`はbooleanではありません。
+一度`optionalValue != nil`をチェックしてみたらわかります。
 . You must check `optionalValue != nil`. However, there's shorthand:
 
 ```swift
 var optionalValue: Int? = 1
-if let optionalValue = optionalValue {
-  println("The int was \(optionalValue)")
+//この行がポイント！今回上の行でoptionalValueには値が代入されているので
+//let optionalValueにはnilではなく1が代入されるのでifが返す値は真(true)
+if let optionalValue = optionalValue { 
+  print("The int was \(optionalValue)")
 } else {
-  println("The int was not there.")
+  print("The int was not there.")
 }
 ```
 
-And a shorthand to the shorthand called a `Nil Coalescing Operator`:
+アンラップをショートカットする書き方もあります。Swiftでは??（はてな二つ）を使って値がnilのときに代入する値を指定することができます。
 
 ```swift
-var optionalValue: String?
-var stringValue = optionalValue ?? ""
+let fuga = hoge ?? "hage"
 ```
+上の例では、hogeがnilでないときはhogeの中身をfugaに代入し、hogeがnilのときは文字列"hage"をfugaに代入しています。
 
-## Functions
-
+##関数 (Functions)
+関数とは命令のかたまりだとおもってください。swiftでは以下のように関数を書くのが基本です。
 ```swift
 func functionName(){
-    println(“Hello World”)
+    print(“Hello World”)
 }
 
 functionName() // "Hello World"
 ```
 
-With parameters:
+引数(parameters)をとる場合:
 
 ```swift
 func functionName(variableName: String){
-    println(“Hello \(variableName)”)
+    print(“Hello \(variableName)”)
 }
 
-functionName("Ben") // "Hello Ben"
+functionName("Hanako") // "Hello Hanako"
 ```
 
-With return values:
+返り値(return values)を返す場合:
 
 ```swift
 func greetingGenerator(name: String) -> String {
@@ -261,52 +266,59 @@ func greetingGenerator(name: String) -> String {
 }
 
 let greeting = greetingGenerator("World")
-println(greeting) // "Hello World"
+print(greeting) // "Hello World"
 ```
 
-With default Values:
+引数に規定値(default value)を与える場合:
 
 ```swift
 func functionName(name: String = "Somebody"){
-    println("Hello \(name)!")
+    print("Hello \(name)!")
 }
 functionName() // "Hello Somebody"
 ```
 
-For clarity, use keyword parameters:
+外部引数名(keyword parameters):
+関数の各引数には、引数名（ローカル名）の他に、分かりやすいラベル（外部名）をつけて、呼び出し時に使うことができます。ラベルをつける事で関数自体がより説明的になり機能や意味が伝わりやすくなります。
 
 ```swift
 func performGreeting(greeting:String, withName name: String){
-    println("\(greeting) \(name).")
+    print("\(greeting) \(name).")
 }
 performGreeting("Hello", withName:"Ben")
 ```
 
-To use the same keyword name as the variable name:
+キーワード`name`をそのまま変数nameとして利用する場合:
 
 ```swift
-func performGreeting(greeting:String, #name: String){
-    println("\(greeting) \(name).")
+func performGreeting(greeting:String, name: String){
+    print("\(greeting) \(name).")
 }
 
 performGreeting("Hello", name:"Ben")
 ```
 
-### Closures
+###　クロージャ (Closures)
 
-Functions are just named closures.
+関数を呼び出す側のスコープで定義された変数を、内側の関数で参照したり変更することができます。これはクロージャと呼ばれるものです。
 
 ```swift
-var greetingClosure: (String, String) -> (String) = {
-    (greeting, name) in
-    return "\(greeting) \(name)."
+func makeIncrementer(initValue: Int) -> () -> Int {
+    var v = initValue
+    func incrementer() -> Int {
+        return v += 1
+    }
+    
+    return incrementer
 }
 
-greetingClosure("Hello", "Ben")
-
+let inc = makeIncrementer(10)
+inc()   // 11
+inc()   // 12
+inc()   // 13
 ```
 
-## Classes
+## クラス(Classes)
 
 ```swift
 class Animal {
@@ -315,7 +327,7 @@ class Animal {
 var myAnimal = Animal()
 ```
 
-### Subclassing
+### サブクラス(Subclassing)
 
 ```swift
 class Dog: Animal {
@@ -324,7 +336,7 @@ class Dog: Animal {
 
 ```
 
-### Methods
+### メソッド(Methods)
 
 ```swift
 class Dog: Animal {
@@ -337,7 +349,7 @@ let myDog = Dog()
 myDog.bark()
 ```
 
-You must use `override` to override a method.
+スーバークラスで既に定義されているメソッドと同じシグニチャ（同じ名前、同じ引数、同じ戻り値）のメソッドを定義する場合は、overrideを指定する必要があります。これは誤ってスーバークラスのメソッドを上書きしてしまうミスを防ぐためです。overrideを指定したメソッドと同じメソッドがスーバークラス（継承ツリーのどこか）に定義されていない場合もエラーになります。
 
 ```swift
 class Animal {
@@ -353,9 +365,9 @@ class Dog: Animal {
 }
 ```
 
-To call the super method, use `super.nameOfMethod()`
 
-### Properties
+
+### プロパティ(Properties)
 
 There is no difference between an ivar and property.
 
